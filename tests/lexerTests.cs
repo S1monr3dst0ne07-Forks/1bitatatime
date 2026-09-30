@@ -1,0 +1,30 @@
+﻿using onebitatatime.src;
+namespace tests
+{
+    public class lexerTests
+    {
+        private string source;
+        private lexer lexer;
+        [Test]
+        public void lexerIgnoresEverythingBeforeInAndAfterOut()
+        {
+            source = "x !& b\nin: x y\nx = x nand y\nout: y";
+            lexer = new(source);
+            var actual = lexer.lex();
+            var expected = new List<token>
+            {
+                new token { type = tokenType.inKeyword, value = "in:" },
+                new token { type = tokenType.identifier, value = "x" },
+                new token { type = tokenType.identifier, value = "y" },
+                new token { type = tokenType.identifier, value = "x" },
+                new token { type = tokenType.assign, value = "assign" },
+                new token { type = tokenType.identifier, value = "x" },
+                new token { type = tokenType.nand, value = "nand" },
+                new token { type = tokenType.identifier, value = "y" },
+                new token { type = tokenType.outKeyword, value = "out:" },
+                new token { type = tokenType.identifier, value = "y" }
+            };
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+    }
+}
