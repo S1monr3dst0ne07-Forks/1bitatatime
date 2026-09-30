@@ -11,8 +11,4 @@
 	  <StartupObject>onebitatatime.program</StartupObject>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="src\" />
-  </ItemGroup>
-
 </Project>
