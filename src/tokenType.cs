@@ -1,4 +1,4 @@
-﻿namespace onebitatatime.src
+﻿namespace src
 {
     public enum tokenType
     {

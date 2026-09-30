@@ -1,4 +1,4 @@
-﻿using onebitatatime.src;
+﻿using src;
 namespace tests
 {
     public class lexerTests

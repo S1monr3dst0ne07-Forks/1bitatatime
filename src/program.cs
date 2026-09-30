@@ -1,4 +1,4 @@
-﻿namespace onebitatatime
+﻿namespace src
 {
     internal class program
     {
