@@ -6,6 +6,8 @@
         outKeyword,
         assign,
         nand,
-        identifier
+        identifier,
+        oneLiteral,
+        zeroLiteral
     }
 }
