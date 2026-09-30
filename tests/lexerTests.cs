@@ -6,7 +6,7 @@ namespace tests
         private string source;
         private lexer lexer;
         [Test]
-        public void lexerIgnoresEverythingBeforeInAndAfterOut()
+        public void lexIgnoresEverythingBeforeInAndAfterOut()
         {
             source = "x !& b\nin: x y\nx = x nand y\nout: y";
             lexer = new(source);
@@ -24,6 +24,15 @@ namespace tests
                 new token { type = tokenType.outKeyword, value = "out:" },
                 new token { type = tokenType.identifier, value = "y" }
             };
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+        [Test]
+        public void lexReturnsEmptyListIfInNotPresent()
+        {
+            source = "x !& y\nout x y";
+            lexer = new(source);
+            var actual = lexer.lex();
+            var expected = new List<token>();
             Assert.That(actual, Is.EqualTo(expected));
         }
     }

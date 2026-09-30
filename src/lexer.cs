@@ -25,6 +25,9 @@
 
                     continue;
                 }
+
+                if (!active) continue;
+
                 if (line.StartsWith("out:"))
                 {
                     tokens.Add(new token { type = tokenType.outKeyword, value = "out:" });
@@ -36,7 +39,6 @@
                     active = false;
                     continue;
                 }
-                if (!active) continue;
 
                 var args = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
