@@ -1,8 +1,8 @@
 ﻿namespace onebitatatime.src
 {
-    public ref struct token
+    public record token
     {
         public tokenType type;
-        public ReadOnlySpan<char> value;
+        public string value;
     }
 }
