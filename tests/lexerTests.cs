@@ -41,9 +41,24 @@ namespace tests
             source = "in: x\na = x !& x\nb = x nand x\nout: a";
             lexer = new(source);
             var actual = lexer.lex();
-
-            Assert.That(actual[5].type, Is.EqualTo(tokenType.nand));
-            Assert.That(actual[11].type, Is.EqualTo(tokenType.nand));
+            var expected = new List<token>
+            {
+                new token { type = tokenType.inKeyword, value = "in:" },
+                new token { type = tokenType.identifier, value = "x" },
+                new token { type = tokenType.identifier, value = "a" },
+                new token { type = tokenType.assign, value = "assign" },
+                new token { type = tokenType.identifier, value = "x" },
+                new token { type = tokenType.nand, value = "nand" },
+                new token { type = tokenType.identifier, value = "x" },
+                new token { type = tokenType.identifier, value = "b" },
+                new token { type = tokenType.assign, value = "assign" },
+                new token { type = tokenType.identifier, value = "x" },
+                new token { type = tokenType.nand, value = "nand" },
+                new token { type = tokenType.identifier, value = "x" },
+                new token { type = tokenType.outKeyword, value = "out:" },
+                new token { type = tokenType.identifier, value = "a" },
+            };
+            Assert.That(actual, Is.EqualTo(expected));
         }
     }
 }
