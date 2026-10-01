@@ -7,7 +7,7 @@ unsigned long program_0(unsigned long ram)
 	/// performs temp = x !& y
 	/// x is in register 2, y is in register 3, temp is in register 4
 	/// </summary>
-	register unsigned long a, b, result;
+	register unsigned long a, b, res;
 	a = (ram >> 2) & 1UL; // must have & 1UL at end of every operation to get values to isolate wanted value
 	b = (ram >> 3) & 1UL;
 	res = !(a & b) & 1UL;
