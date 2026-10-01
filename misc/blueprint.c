@@ -11,7 +11,9 @@ unsigned long program_0(unsigned long ram)
 	a = (ram >> 2) & 1UL; // must have & 1UL at end of every operation to get values to isolate wanted value
 	b = (ram >> 3) & 1UL;
 	res = !(a & b) & 1UL;
-	ram = (ram & ~(1UL << 4)) | (res << 4) // stores value of res in register 4
+	ram = (ram & ~(1UL << 4)) | (res << 4); // stores value of res in register 4
+
+	return ram;
 }
 int main(int argc, char* argv[])
 {
@@ -25,5 +27,7 @@ int main(int argc, char* argv[])
 	if (argv[1][0] == '1') ram |= (1UL << 2); // register 2 and 3 are reserved for inputs
 	if (argv[2][0] == '1') ram |= (1UL << 3);
 	ram = program_0(ram);
+
+	printf("output: %lu\n", (ram >> 4) & 1UL);
 	return 0;
 }
