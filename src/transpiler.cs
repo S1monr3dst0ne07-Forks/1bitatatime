@@ -6,6 +6,8 @@ namespace src
     {
         public string transpileToC(List<token> tokens)
         {
+            if (tokens.Count < 1) return string.Empty;
+
             var sb = new StringBuilder();
             var idMap = new Dictionary<string, byte>();
             sb.AppendLine("#include <stdio.h>");
