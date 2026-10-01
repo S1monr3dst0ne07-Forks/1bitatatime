@@ -35,5 +35,25 @@ namespace tests
             var expected = new List<token>();
             Assert.That(actual, Is.EqualTo(expected));
         }
+        [Test]
+        public void lexHandlesAlternateNandSyntaxToken()
+        {
+            source = "in: x\na = x !& x\nb = x nand x\nout: a";
+            lexer = new(source);
+            var actual = lexer.lex();
+
+            Assert.That(actual[5].type, Is.EqualTo(tokenType.nand));
+            Assert.That(actual[11].type, Is.EqualTo(tokenType.nand));
+        }
+        [Test]
+        public void lexHandlesVariableAssignmentsWithVaryingSpaces()
+        {
+            source = "in: x\na=x nand x\nout: a";
+            lexer = new(source);
+            var actual = lexer.lex();
+
+            Assert.That(actual, Has.Count.GreaterThan(0));
+            Assert.That(actual[3].type, Is.EqualTo(tokenType.assign));
+        }
     }
 }
