@@ -60,12 +60,12 @@ namespace src
                         {
                             case tokenType.oneLiteral:
                                 sb.AppendLine($"ram |= (1UL << {idMap[dest]});");
-                                pc += 2;
+                                pc++;
                                 break;
 
                             case tokenType.zeroLiteral:
                                 sb.Append($"ram &= ~(1UL << {idMap[dest]});");
-                                pc += 2;
+                                pc++;
                                 break;
 
                             default:
@@ -81,7 +81,7 @@ namespace src
                                         sb.AppendLine($"ram = (ram & ~(1UL << {idMap[dest]})) | (res << {idMap[dest]});");
                                         sb.AppendLine();
 
-                                        pc += 4;
+                                        pc += 3;
                                         break;
 
                                     default:
