@@ -78,8 +78,7 @@ namespace tests
 
             var result = transpiler.transpileToC(emptyTokens);
 
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result, Does.Contain("return 0;"));
+            Assert.That(result, Is.EqualTo(string.Empty));
         }
     }
 }
