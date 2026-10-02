@@ -1,3 +1,0 @@
-in: x y
-res = x nand y
-out: res
