@@ -1,0 +1,5 @@
+in: x y
+x = x !& x
+y = y !& y
+x = x !& y
+out: x
