@@ -1,9 +1,10 @@
-# 1bitatatime Toolchain (v1.0.0)
+# 1bitatatime (v1.0.0)
 
-Welcome to the official stable release of the **1bitatatime** language ecosystem. This repository houses the entire toolchain for a minimal, ultra-fast hardware gate simulator. It features a high-efficiency C# transpiler, an integrated VS Code syntax highlighter, and performance-optimized reference circuits.
+This language explores the absolute limits of computational minimalism by using NAND as its sole logical operation. Every logical gate, variable mutation, and hardware component is built entirely by chaining and reusing variables with this single primitive.
 
-The runtime simulator enforces a strict **64-bit virtual hardware environment** mapped entirely within a single physical CPU machine word (`unsigned long ram`), providing zero RAM allocation overhead during active execution layers.
+This repository has the transpiler, vscode syntax highligher and documentation.
 
+The runtime simulator enforces a strict **64-bit virtual hardware environment** mapped entirely within a single physical CPU register, requiring zero RAM allocation overhead during active execution layers.
 
 ## repository structure
 
