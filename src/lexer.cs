@@ -40,6 +40,11 @@
                     continue;
                 }
 
+                if (line.StartsWith("#")) // comment
+                {
+                    continue;
+                }
+
                 var args = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
                 foreach (var arg in args)
