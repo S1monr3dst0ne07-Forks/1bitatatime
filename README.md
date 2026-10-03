@@ -4,7 +4,9 @@ This language explores the absolute limits of computational minimalism by using 
 
 This repository has the transpiler, vscode syntax highligher and documentation.
 
-The runtime simulator enforces a strict **64-bit virtual hardware environment** mapped entirely within a single physical CPU register, requiring zero RAM allocation overhead during active execution layers.
+The runtime enforces a strict **64-bit virtual hardware environment** mapped entirely within a single physical CPU register, requiring zero RAM allocation overhead during active execution layers.
+
+Every program in 1bitatatime language runs in O(N) time and O(1) space. 
 
 ## repository structure
 
