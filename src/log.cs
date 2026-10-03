@@ -15,7 +15,7 @@
             { 202, "variable undefined" },
             { 401, "source does not end in .1bit" },
             { 402, "program contains no inputs" },
-            { 403, "progam contains no outputs" }
+            { 403, "program contains no outputs" }
         };
         public static void error(int code)
         {
