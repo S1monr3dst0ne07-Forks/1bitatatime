@@ -20,10 +20,9 @@ The runtime simulator enforces a strict **64-bit virtual hardware environment** 
 
 ```text
 in: x y
-w = x !& y
-x = x !& w
-y = y !& w
-x = x !& y
+temp = x
+x = y
+y = temp
 out: x y
 ```
 

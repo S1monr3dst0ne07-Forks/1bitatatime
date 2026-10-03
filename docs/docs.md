@@ -17,10 +17,9 @@ The language is evaluated sequentially line-by-line. All lines following a `#` a
 
 ```text
 in: x y
-w = x !& y
-x = x !& w
-y = y !& w
-x = x !& y
+temp = x
+x = y
+y = temp
 out: x y
 ```
 Check out more [examples](/examples/examples.md). 
