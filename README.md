@@ -1,4 +1,4 @@
-# 1bitatatime (mvp)
+# 1bitatatime 1.0.0
 
 A minimalist programming language and transpiler built from scratch using C#.
 

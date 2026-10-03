@@ -8,10 +8,8 @@ namespace src
         static void Main(string[] args)
         {
             if (args.Length < 1)
-            {
-                Console.WriteLine("error: no arguments given");
-                return;
-            }
+                log.error(1);
+
             string sourceFile = args[0];
             string outBinary = sourceFile.Split('.')[0];
 
@@ -48,28 +46,23 @@ namespace src
                         if (writer.BaseStream.CanWrite)
                             writer.Write(c);
 
-                    string errors = compiler.StandardError.ReadToEnd();
                     compiler.WaitForExit();
 
                     switch (compiler.ExitCode)
                     {
                         case 0:
-                            Console.WriteLine($"success! compiled binary: {outBinary}");
+                            log.success($"compiled binary: {outBinary}");
                             break;
                         default:
-                            Console.WriteLine($"error: {errors}");
+                            log.error(3);
                             break;
                     }
                 }
                 catch (System.ComponentModel.Win32Exception)
                 {
-                    Console.WriteLine("error: gcc is not installed on your machine");
+                    log.error(2);
                 }
             }
-
-
-            File.WriteAllText(outBinary + ".c", c);
-
         }
     }
 }

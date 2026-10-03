@@ -6,7 +6,8 @@ namespace src
     {
         public string transpileToC(List<token> tokens)
         {
-            if (tokens.Count < 1) return string.Empty;
+            if (tokens.Count < 1) log.error(103);
+            if (!tokens.Contains(new token { type = tokenType.outKeyword, value = "out:" })) log.error(102);
 
             var sb = new StringBuilder();
             var idMap = new Dictionary<string, byte>();
@@ -18,6 +19,7 @@ namespace src
             byte nextId = 2; // next usable register to store values in
             while (pc < tokens.Count)
             {
+                if (nextId >= 64) log.error(201);
                 switch (tokens[pc].type)
                 {
                     case tokenType.inKeyword:
@@ -41,7 +43,9 @@ namespace src
                             pc++;
                         }
 
-                        sb.AppendLine($"if (argc < {argc + 1}){{ printf(\"error: not enough inputs\\n\"); return 0; }}");
+                        if (argc == 0) log.warn(402);
+
+                        sb.AppendLine($"if (argc < {argc + 1}){{ printf(\"error [1b100]: not enough inputs\\n\"); return 1; }}");
                         sb.AppendLine("register unsigned long a, b, res;");
                         sb.AppendLine("register unsigned long ram = 1UL << 1;");
 
@@ -77,6 +81,8 @@ namespace src
                                         string leftOp = tokens[pc + 1].value;
                                         string rightOp = tokens[pc + 3].value;
 
+                                        if (!idMap.TryGetValue(leftOp, out byte value) || !idMap.TryGetValue(leftOp, out value)) log.error(202);
+
                                         sb.AppendLine($"a = (ram >> {idMap[leftOp]}) & 1UL;");
                                         sb.AppendLine($"b = (ram >> {idMap[rightOp]}) & 1UL;");
                                         sb.AppendLine($"res = !(a & b) & 1UL;");
@@ -104,6 +110,8 @@ namespace src
                         pc++;
                         sb.AppendLine();
                         sb.Append("printf(\"output: ");
+
+                        if (tokens.Count - pc == 0) log.warn(403);
 
                         for (int i = pc; i < tokens.Count; i++)
                             sb.Append("%lu ");
