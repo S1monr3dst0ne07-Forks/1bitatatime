@@ -1,0 +1,29 @@
+{
+    "name": "1bitatatime",
+    "displayName": "1bitatatime",
+    "description": "Official syntax highlighting for the 1bitatatime langauge",
+    "version": "1.0.0",
+    "publisher": "benjaminfberger",
+    "engines": {
+        "vscode": "^1.75.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "1bit",
+                "extensions": [ ".1bit" ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "1bit",
+                "scopeName": "source.1bit",
+                "path": "./syntax/1bit.tmLanguage.json"
+            }
+        ]
+    }
+}

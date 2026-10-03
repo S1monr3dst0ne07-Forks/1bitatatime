@@ -1,0 +1,48 @@
+{
+	"name": "1bitatatime",
+	"scopeName": "source.1bit",
+	"patterns": [
+		{ "include": "#keywords" },
+		{ "include": "#operators" },
+		{ "include": "#comments" },
+		{ "include": "#constants" }
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.1bit",
+					"match": "\\b(in|out):"
+				}
+			]
+		},
+		"operators": {
+			"patterns": [
+				{
+					"name": "keyword.operator.nand.1bit",
+					"match": "!&|\\bnan\\b"
+				},
+				{
+					"name": "keyword.operator.assignment.1bit",
+					"match": "="
+				}
+			]
+		},
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.number-sign.1bit",
+					"match": "#.*$"
+				}
+			]
+		},
+		"constants": {
+			"patterns": [
+				{
+					"name": "constant.language.1bit",
+					"match": "\\b(true|false|1|0)\\b"
+				}
+			]
+		}
+	}
+}
