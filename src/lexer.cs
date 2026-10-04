@@ -58,7 +58,37 @@
                         case "nand":
                             tokens.Add(new token { type = tokenType.nand, value = "nand" });
                             break;
+                        
+                        case "^":
+                        case "xor": 
+                            tokens.Add(new token { type = tokenType.xor, value = "xor" });
+                            break;
+                        
+                        case "&":
+                        case "and":
+                            tokens.Add(new token { type = tokenType.and, value = "and" });
+                            break;
+                        
+                        case "|":
+                        case "or": 
+                            tokens.Add(new token { type = tokenType.or, value = "or" });
+                            break;
+                        
+                        case "!^":
+                        case "xnor":
+                            tokens.Add(new token { type = tokenType.xnor, value = "xnor" });
+                            break;
+                        
+                        case "!|":
+                        case "nor":
+                            tokens.Add(new token { type = tokenType.nor, value = "nor" });
+                            break;
 
+                        case "!":
+                        case "not":
+                            tokens.Add(new token { type = tokenType.not, value = "not" });
+                            break;
+                        
                         case "1":
                         case "true":
                             tokens.Add(new token { type = tokenType.oneLiteral, value = "1" });

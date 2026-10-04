@@ -1,6 +1,9 @@
 ﻿using src;
+using NUnit.Framework;
+
 namespace tests
 {
+    [TestFixture]
     public class lexerTests
     {
         private string source;

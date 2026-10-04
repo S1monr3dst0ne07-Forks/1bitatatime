@@ -1,4 +1,5 @@
 ﻿using src;
+using NUnit.Framework;
 
 namespace tests
 {
