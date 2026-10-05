@@ -75,33 +75,129 @@ namespace src
                                 break;
 
                             default:
-                                switch (tokens[pc + 2].type)
+                                if (tokens[pc + 2].type == tokenType.not) // separated because not is a unary operator
                                 {
-                                    case tokenType.nand:
-                                        string leftOp = tokens[pc + 1].value;
-                                        string rightOp = tokens[pc + 3].value;
+                                    string targetOp = tokens[pc + 1].value;
+                                    byte value;
 
-                                        if (!idMap.TryGetValue(leftOp, out byte value) || !idMap.TryGetValue(leftOp, out value)) log.error(202);
+                                    if (!idMap.TryGetValue(targetOp, out value)) log.error(202);
 
-                                        sb.AppendLine($"a = (ram >> {idMap[leftOp]}) & 1UL;");
-                                        sb.AppendLine($"b = (ram >> {idMap[rightOp]}) & 1UL;");
-                                        sb.AppendLine($"res = !(a & b) & 1UL;");
-                                        sb.AppendLine($"ram = (ram & ~(1UL << {idMap[dest]})) | (res << {idMap[dest]});");
-                                        sb.AppendLine();
-
-                                        pc += 3;
-                                        break;
-
-                                    default:
-                                        string source = tokens[pc + 1].value;
-
-                                        sb.AppendLine($"res = (ram >> {idMap[source]}) & 1UL;");
-                                        sb.AppendLine($"ram = (ram & ~(1UL << {idMap[dest]})) | (res << {idMap[dest]});");
-                                        sb.AppendLine();
-
-                                        pc++;
-                                        break;
+                                    sb.AppendLine($"a = (ram >> {idMap[targetOp]}) & 1UL;");
+                                    sb.AppendLine($"res = ~a & 1UL;"); 
+                                    sb.AppendLine($"ram = (ram & ~(1UL << {idMap[dest]})) | (res << {idMap[dest]});");
+                                    sb.AppendLine();
                                 }
+                                else
+                                {
+                                    string leftOp = tokens[pc + 1].value;
+                                    string rightOp = tokens[pc + 3].value;
+                                    byte value;
+                                    switch (tokens[pc + 2].type)
+                                    {
+                                        case tokenType.nand:
+
+
+                                            if (!idMap.TryGetValue(leftOp, out value) ||
+                                                !idMap.TryGetValue(rightOp, out value)) log.error(202);
+
+                                            sb.AppendLine($"a = (ram >> {idMap[leftOp]}) & 1UL;");
+                                            sb.AppendLine($"b = (ram >> {idMap[rightOp]}) & 1UL;");
+                                            sb.AppendLine("res = !(a & b) & 1UL;");
+                                            sb.AppendLine(
+                                                $"ram = (ram & ~(1UL << {idMap[dest]})) | (res << {idMap[dest]});");
+                                            sb.AppendLine();
+
+                                            pc += 3;
+                                            break;
+
+                                        case tokenType.and:
+
+                                            if (!idMap.TryGetValue(leftOp, out value) ||
+                                                !idMap.TryGetValue(rightOp, out value)) log.error(202);
+
+                                            sb.AppendLine($"a = (ram >> {idMap[leftOp]}) & 1UL;");
+                                            sb.AppendLine($"b = (ram >> {idMap[rightOp]}) & 1UL;");
+                                            sb.AppendLine("res = (a & b) & 1UL;");
+                                            sb.AppendLine(
+                                                $"ram = (ram & ~(1UL << {idMap[dest]})) | (res << {idMap[dest]});");
+                                            sb.AppendLine();
+
+                                            pc += 3;
+                                            break;
+
+                                        case tokenType.or:
+
+                                            if (!idMap.TryGetValue(leftOp, out value) ||
+                                                !idMap.TryGetValue(rightOp, out value)) log.error(202);
+
+                                            sb.AppendLine($"a = (ram >> {idMap[leftOp]}) & 1UL;");
+                                            sb.AppendLine($"b = (ram >> {idMap[rightOp]}) & 1UL;");
+                                            sb.AppendLine("res = (a | b) & 1UL;");
+                                            sb.AppendLine(
+                                                $"ram = (ram & ~(1UL << {idMap[dest]})) | (res << {idMap[dest]});");
+                                            sb.AppendLine();
+
+                                            pc += 3;
+                                            break;
+
+                                        case tokenType.nor:
+
+                                            if (!idMap.TryGetValue(leftOp, out value) ||
+                                                !idMap.TryGetValue(rightOp, out value)) log.error(202);
+
+                                            sb.AppendLine($"a = (ram >> {idMap[leftOp]}) & 1UL;");
+                                            sb.AppendLine($"b = (ram >> {idMap[rightOp]}) & 1UL;");
+                                            sb.AppendLine("res = ~(a | b) & 1UL;");
+                                            sb.AppendLine(
+                                                $"ram = (ram & ~(1UL << {idMap[dest]})) | (res << {idMap[dest]});");
+                                            sb.AppendLine();
+
+                                            pc += 3;
+                                            break;
+
+                                        case tokenType.xor:
+
+                                            if (!idMap.TryGetValue(leftOp, out value) ||
+                                                !idMap.TryGetValue(rightOp, out value)) log.error(202);
+
+                                            sb.AppendLine($"a = (ram >> {idMap[leftOp]}) & 1UL;");
+                                            sb.AppendLine($"b = (ram >> {idMap[rightOp]}) & 1UL;");
+                                            sb.AppendLine("res = (a ^ b) & 1UL;");
+                                            sb.AppendLine(
+                                                $"ram = (ram & ~(1UL << {idMap[dest]})) | (res << {idMap[dest]});");
+                                            sb.AppendLine();
+
+                                            pc += 3;
+                                            break;
+
+                                        case tokenType.xnor:
+
+                                            if (!idMap.TryGetValue(leftOp, out value) ||
+                                                !idMap.TryGetValue(rightOp, out value)) log.error(202);
+
+                                            sb.AppendLine($"a = (ram >> {idMap[leftOp]}) & 1UL;");
+                                            sb.AppendLine($"b = (ram >> {idMap[rightOp]}) & 1UL;");
+                                            sb.AppendLine("res = ~(a ^ b) & 1UL;");
+                                            sb.AppendLine(
+                                                $"ram = (ram & ~(1UL << {idMap[dest]})) | (res << {idMap[dest]});");
+                                            sb.AppendLine();
+
+                                            pc += 3;
+                                            break;
+                                        
+                                        default: // direct assignment e.g. x = y
+                                            string source = tokens[pc + 1].value;
+
+                                            sb.AppendLine($"res = (ram >> {idMap[source]}) & 1UL;");
+                                            sb.AppendLine(
+                                                $"ram = (ram & ~(1UL << {idMap[dest]})) | (res << {idMap[dest]});");
+                                            sb.AppendLine();
+
+                                            pc++;
+                                            break;
+                                    }
+                                }
+
                                 break;
                         }
                         break;
