@@ -14,9 +14,19 @@ def tokenize(path):
     return list(filter(lambda x: bool(x), tokens))
 
 variable = {}
-def alloc(name):
+
+# look up and allocate if not present
+# variable bit offset into r15
+def lookup(name):
     if name not in variable:
-        variable[name] = len(variable) + 1
+        if len(variable) >= 64:
+            print("error: more than 64 variables used.")
+        variable[name] = len(variable)
+    return variable[name]
+
+output = []
+def emit(x):
+    output.append(x)
 
 @dc
 class AstLeaf:
@@ -30,9 +40,33 @@ class AstLeaf:
         return cls(content, kind)
 
     def compile(self):
+        self.load()
+        
+    def load(self):
         match self.kind:
-            case 'lit': return f'mov al, {self.content}\n'
-            case 'var': return f'mov al, [rbp-{variable[self.content]}]\n'
+            case 'lit': emit(f'mov rax, {self.content}')
+            case 'var': 
+                offset = lookup(self.content)
+                emit('mov rax, r15')
+                emit(f'shr rax, {offset}')
+                emit('and rax, 1')
+
+    def store(self):
+        match self.kind:
+            case 'lit':
+                print(f"error: trying to store into literal `{self.content}`")
+                sys.exit(1)
+            case 'var':
+                offset = lookup(self.content)
+
+                #reset bit in r15
+                mask = ((1 << 64) - 1) ^ (1 << offset)
+                emit(f"and r15, {mask}")
+
+                #set bit in r15
+                emit(f"shl rax, {offset}")
+                emit(f"or r15, rax")
+
 
 @dc
 class AstNand:
@@ -40,19 +74,20 @@ class AstNand:
     right : AstLeaf
 
     def compile(self):
-        return  (
-            self.left .compile() + 'mov bl, al\n' +
-            self.right.compile() + 'and al, bl\nxor al, 1\n'
-        )
+        self.left .load()
+        emit('mov bl, rax')
+        self.right.load()
+        emit('and al, bl')
+        emit('xor al, 1')
 
 @dc
 class AstStmt:
-    dst : str
+    dst : AstLeaf
     src : AstNand | AstLeaf
 
     @classmethod
     def parse(cls, stream):
-        dst = stream.pop(0)
+        dst = AstLeaf.parse(stream)
         assert stream.pop(0) == '='
         src = AstLeaf.parse(stream)
 
@@ -62,12 +97,12 @@ class AstStmt:
             right = AstLeaf.parse(stream)
             src = AstNand(left, right)
 
-        alloc(dst)
         assert stream.pop(0) == '\n'
         return cls(dst, src)
 
     def compile(self):
-        return self.src.compile() + f'mov [rbp-{variable[self.dst]}], al\n'
+        self.src.compile()
+        self.dst.store()
 
 @dc
 class AstProg:
@@ -95,54 +130,53 @@ class AstProg:
                 case x:
                     stream.insert(0, x)
                     stmts.append(AstStmt.parse(stream))
-        if ins:
-            for var in ins: 
-                alloc(var)
 
         return cls(ins, outs, stmts)
 
     def compile(self):
-        output = ''
-        output += "section '.text' code readable executable\n"
-        output += "start:\n"
-        output += "mov rbp, rsp\n"
-        for _ in variable:
-            output += "push 0\n"
+        emit("section '.text' code readable executable")
+        emit("start:")
+
+        # r15 stores variables.
+        emit("mov r15, 0")
 
         if self.ins:
-            output += "call [GetCommandLineA]\n"
+            emit("call [GetCommandLineA]")
             for i, name in enumerate(self.ins):
-                vaddr = variable[name]
-                output += "call next_argument\n"
-                output += f"mov byte [rbp-{vaddr}], bl\n"
-            output += 'arg_done:\n'
+                offset = lookup(name)
+                emit("call next_argument")
+                emit(f"shl rbx, {offset}")
+                emit("or r15, rbx")
+            emit('arg_done:\n')
 
-        output += '; --- program start ---\n'
+        emit('; --- program start ---\n')
         for stmt in self.stmts:
-            output += stmt.compile()
-        output += '; --- program end ---\n'
+            stmt.compile()
+        emit('; --- program end ---\n')
 
         if self.outs:
             for i, name in enumerate(self.outs):
-                vaddr = variable[name]
-                offset = 8 + 2 * i
-                output += f"mov al, byte [rbp-{vaddr}]\n"
-                output += f"add al, '0'\n"
-                output += f"mov [output + {offset}], al\n"
+                offset = lookup(name)
+                output = 8 + 2 * i
+                emit(f"mov rax, r15")
+                emit(f"shr rax, {offset}")
+                emit(f"and rax, 1")
+                emit(f"add al, '0'")
+                emit(f"mov [output + {output}], al")
 
-            output += "mov rcx, -11\n"
-            output += "call [GetStdHandle]\n"
-            output += "mov rcx, rax\n"
-            output += "mov rdx, output\n"
-            output += f"mov r8, {offset + 1}\n"
-            output += "mov r9, 0\n"
-            output += "call [WriteFile]\n"
+            emit("mov rcx, -11")
+            emit("call [GetStdHandle]")
+            emit("mov rcx, rax")
+            emit("mov rdx, output")
+            emit(f"mov r8, {output + 1}")
+            emit("mov r9, 0")
+            emit("call [WriteFile]")
 
-        output += "mov rcx, 0\n"
-        output += "call [ExitProcess]\n"
+        emit("mov rcx, 0")
+        emit("call [ExitProcess]")
 
-        output += "section '.data' readable writable\n"
-        output += "output: db 'output:                            '\n"
+        emit("section '.data' readable writable")
+        emit("output: db 'output:                            '")
         return output
 
 def finalize(body):
@@ -197,8 +231,9 @@ def main():
     stream = tokenize(sys.argv[1])
     root = AstProg.parse(stream)
     
-    output = root.compile()
-    finalize(output)
+    root.compile()
+    print(output)
+    finalize("\n".join(output))
 
 if __name__ == '__main__':
     main()
