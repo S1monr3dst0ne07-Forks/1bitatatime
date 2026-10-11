@@ -7,30 +7,40 @@ The language is evaluated sequentially line-by-line. All lines following a `#` a
 - **`out:`** declares variables as outputs at the bottom of the file.
 - **`=`** assigns a value to a variable.
 - **`!&`** or **`nand`** evaluates bitwise nand logic: `!(A & B)`.
+- **`!|`** or **`nor`** evaluates bitwise nor logic: `!(A | B)`. 
+- **`!^`** or **`nxor`** evaluates bitwise nxor logic: `!(A ^ B)`.
+- **`!`** or **`not`** evaluates bitwise not logic: `!A`. 
+- **`|`** or **`or`** evaluates bitwise or logic: `A | B`.
+- **`&`** or **`and`** evaluates bitwise and logic: `A & B`.
+- **`^`** or **`xor`** evaluates bitwise xor logic: `A ^ B`.
+
+Note unary operators must come after their operands, e.g. `x = x !`, not `x = ! x`
 
 ### constants
 `true` and `1` are interchangable. 
 
 `false` and `0` are interchangable. 
 
-### example: swap values x and y ([examples/swap.1bit](examples/swap.1bit))
+### example: full adder [examples/fadder.1bit](examples/swap.1bit))
 
 ```text
-in: x y
-temp = x
-x = y
-y = temp
-out: x y
+in: a b cin
+sum1 = a ^ b
+sum = sum1 ^ cin
+carry1 = a & b
+carry2 = sum1 & cin
+cout = carry1 | carry2
+out: sum cout
 ```
 Check out more [examples](/examples/examples.md). 
 ## compiling
 
 To compile a source file using the 1bit transpiler, run
 ```bash
-./1bit swap.1bit
+./1bit fadder.1bit
 
 # Expected output
-success[1b000]: compiled binary: swap.exe
+success[1b000]: compiled binary: fadder.exe
 ```
 
 ### running the generated binary
@@ -38,9 +48,9 @@ The compiler will create a binary. Execute it by passing space separated binary 
 
 ```bash
 # Running with inputs x=1, y=0
-./swap 1 0
+./fadder 1 0 1
 
-# Expected Console Output:
+# Expected output:
 output: 0 1
 ```
 
