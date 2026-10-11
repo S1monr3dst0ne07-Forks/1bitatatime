@@ -101,12 +101,12 @@ class AstNot:
         emit('xor al, 1')
 
 def parse_expression(stream):
+    if stream[0] == '!':
+        stream.pop(0)
+        return AstNot(AstLeaf.parse(stream))
+
     left = AstLeaf.parse(stream)
     op = stream[0]
-
-    if op == '!':
-        return AstNot(left)
-
     if op in ('!&', '!|', '!^', '|', '&', '^'):
         stream.pop(0)
         right = AstLeaf.parse(stream)
