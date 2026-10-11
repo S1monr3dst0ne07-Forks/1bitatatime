@@ -260,7 +260,6 @@ def main():
     root = AstProg.parse(stream)
     
     root.compile()
-    print(output)
     finalize("\n".join(output))
 
 if __name__ == '__main__':
