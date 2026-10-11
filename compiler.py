@@ -69,34 +69,62 @@ class AstLeaf:
 
 
 @dc
-class AstNand:
-    left  : AstLeaf
-    right : AstLeaf
+class AstBinary:
+    left  : typing.Any
+    right : typing.Any
+    op    : str
 
     def compile(self):
         self.left .load()
-        emit('mov bl, rax')
+        emit('mov bl, al')
         self.right.load()
-        emit('and al, bl')
+
+        negate = False
+        if self.op[0] == '!': 
+            self.op = self.op[1]
+            negate = True
+
+        match self.op[0]:
+            case '&': emit('and al, bl')
+            case '|': emit('or  al, bl')
+            case '^': emit('xor al, bl')
+
+        if negate:
+            emit('xor al, 1')
+
+@dc
+class AstNot:
+    expr : typing.Any
+
+    def compile(self):
+        self.expr.load()
         emit('xor al, 1')
+
+def parse_expression(stream):
+    left = AstLeaf.parse(stream)
+    op = stream[0]
+
+    if op == '!':
+        return AstNot(left)
+
+    if op in ('!&', '!|', '!^', '|', '&', '^'):
+        stream.pop(0)
+        right = AstLeaf.parse(stream)
+        left = AstBinary(left, right, op)
+
+    return left
+
 
 @dc
 class AstStmt:
     dst : AstLeaf
-    src : AstNand | AstLeaf
+    src : typing.Any
 
     @classmethod
     def parse(cls, stream):
         dst = AstLeaf.parse(stream)
         assert stream.pop(0) == '='
-        src = AstLeaf.parse(stream)
-
-        if stream[0] == '!&':
-            stream.pop(0)
-            left = src
-            right = AstLeaf.parse(stream)
-            src = AstNand(left, right)
-
+        src = parse_expression(stream)
         assert stream.pop(0) == '\n'
         return cls(dst, src)
 
