@@ -2,6 +2,11 @@ import sys
 import typing
 from dataclasses import dataclass as dc
 
+# DISCLAIMER:
+#  the following source file as been authored entirely by human hand.
+#  i object to the use of generative LLMs in programming.
+
+
 stream_content = []
 stream_index = 0
 def tokenize(path):
