@@ -2,6 +2,8 @@ import sys
 import typing
 from dataclasses import dataclass as dc
 
+stream_content = []
+stream_index = 0
 def tokenize(path):
     with open(path, 'r') as f:
         src = f.read()
@@ -11,9 +13,39 @@ def tokenize(path):
         tokens += line.split(' ')
         if line: tokens.append('\n')
 
-    return list(filter(lambda x: bool(x), tokens))
+    tokens = list(filter(lambda x: bool(x), tokens))
 
-variable = {}
+    # make sure file is terminated by a line-feed
+    if tokens and tokens[-1] != '\n':
+        tokens.append('\n')
+
+    global stream_content
+    stream_content = tokens
+
+
+def tok_has(): return stream_index < len(stream_content)
+def tok_peek():
+    if tok_has(): 
+        return stream_content[stream_index]
+    else:
+        print("error: unexpected end of token stream")
+
+        import traceback
+        traceback.print_stack()
+        sys.exit(1)
+def tok_pop():
+    global stream_index
+    t = tok_peek()
+    stream_index += 1
+    return t
+def tok_expect(ref):
+    tok = tok_pop()
+    if tok != ref:
+        print(f"error: expected `{ref}` but got `{tok}`")
+        sys.exit(1)
+
+
+variable = {'0': 0, '1': 1}
 
 # look up and allocate if not present
 # variable bit offset into r15
@@ -21,6 +53,7 @@ def lookup(name):
     if name not in variable:
         if len(variable) >= 64:
             print("error: more than 64 variables used.")
+            sys.exit(1)
         variable[name] = len(variable)
     return variable[name]
 
@@ -31,41 +64,32 @@ def emit(x):
 @dc
 class AstLeaf:
     content : str
-    kind : typing.Literal['lit', 'var']
 
     @classmethod
-    def parse(cls, stream):
-        content = stream.pop(0)
-        kind = 'lit' if content.isdigit() else 'var'
-        return cls(content, kind)
+    def parse(cls):
+        return cls(tok_pop())
 
     def compile(self):
         self.load()
         
     def load(self):
-        match self.kind:
-            case 'lit': emit(f'mov rax, {self.content}')
-            case 'var': 
-                offset = lookup(self.content)
-                emit('mov rax, r15')
-                emit(f'shr rax, {offset}')
-                emit('and rax, 1')
+        offset = lookup(self.content)
+        emit('mov rax, r15')
+        emit(f'shr rax, {offset}')
+        emit('and rax, 1')
 
     def store(self):
-        match self.kind:
-            case 'lit':
-                print(f"error: trying to store into literal `{self.content}`")
-                sys.exit(1)
-            case 'var':
-                offset = lookup(self.content)
+        if self.content in ('0', '1'):
+            print(f"warning: assigning to built-in variable `{self.content}`")
+        offset = lookup(self.content)
 
-                #reset bit in r15
-                mask = ((1 << 64) - 1) ^ (1 << offset)
-                emit(f"and r15, {mask}")
+        #reset bit in r15
+        mask = ((1 << 64) - 1) ^ (1 << offset)
+        emit(f"and r15, {mask}")
 
-                #set bit in r15
-                emit(f"shl rax, {offset}")
-                emit(f"or r15, rax")
+        #set bit in r15
+        emit(f"shl rax, {offset}")
+        emit(f"or r15, rax")
 
 
 @dc
@@ -100,16 +124,16 @@ class AstNot:
         self.expr.load()
         emit('xor al, 1')
 
-def parse_expression(stream):
-    if stream[0] == '!':
-        stream.pop(0)
-        return AstNot(AstLeaf.parse(stream))
+def parse_expression():
+    if tok_peek() == '!':
+        tok_pop()
+        return AstNot(AstLeaf.parse())
 
-    left = AstLeaf.parse(stream)
-    op = stream[0]
+    left = AstLeaf.parse()
+    op = tok_peek()
     if op in ('!&', '!|', '!^', '|', '&', '^'):
-        stream.pop(0)
-        right = AstLeaf.parse(stream)
+        tok_pop()
+        right = AstLeaf.parse()
         left = AstBinary(left, right, op)
 
     return left
@@ -121,16 +145,19 @@ class AstStmt:
     src : typing.Any
 
     @classmethod
-    def parse(cls, stream):
-        dst = AstLeaf.parse(stream)
-        assert stream.pop(0) == '='
-        src = parse_expression(stream)
-        assert stream.pop(0) == '\n'
+    def parse(cls, ):
+        dst = AstLeaf.parse()
+        tok_expect('=')
+        src = parse_expression()
+        tok_expect('\n')
         return cls(dst, src)
 
     def compile(self):
         self.src.compile()
         self.dst.store()
+
+
+flag_has_inputs = False
 
 @dc
 class AstProg:
@@ -139,25 +166,26 @@ class AstProg:
     stmts : list[AstStmt]
 
     @staticmethod
-    def remain(stream):
+    def remain():
         tail = []
-        while stream[0] != '\n':
-            tail.append(stream.pop(0))
-        stream.pop(0) # consume newline
+        while tok_peek() != '\n':
+            tail.append(tok_pop())
+        tok_expect('\n')
         return tail
 
     @classmethod
-    def parse(cls, stream):
+    def parse(cls, ):
         stmts = []
         ins = None
         outs = None
-        while stream:
-            match stream.pop(0):
-                case 'in:' : ins  = cls.remain(stream)
-                case 'out:': outs = cls.remain(stream)
+        while tok_has():
+            match tok_pop():
+                case 'in:' : ins  = cls.remain()
+                case 'out:': outs = cls.remain()
                 case x:
-                    stream.insert(0, x)
-                    stmts.append(AstStmt.parse(stream))
+                    global stream_index
+                    stream_index -= 1 #un-pop token
+                    stmts.append(AstStmt.parse())
 
         return cls(ins, outs, stmts)
 
@@ -169,6 +197,9 @@ class AstProg:
         emit("mov r15, 0")
 
         if self.ins:
+            global flag_has_inputs
+            flag_has_inputs = True
+
             emit("call [GetCommandLineA]")
             for i, name in enumerate(self.ins):
                 offset = lookup(name)
@@ -205,14 +236,9 @@ class AstProg:
 
         emit("section '.data' readable writable")
         emit("output: db 'output:                            '")
-        return output
 
 def finalize(body):
-    with open('build.asm', 'w') as f:
-        f.write(f"""
-    format PE64
-    entry start
-
+    arg_reader = """
 next_argument:
 .find_space:
     inc rax
@@ -230,7 +256,14 @@ jne .find_space
 je .find_char
     sub bl, '0'
     ret
+    """
 
+    with open('build.asm', 'w') as f:
+        f.write(f"""
+    format PE64
+    entry start
+
+{arg_reader if flag_has_inputs else ""}
 {body}
 
     section '.idata' import data readable writeable
@@ -256,8 +289,8 @@ def main():
         print("Error: No source path provided.\nUsage: python3 compiler.py <path>")
         sys.exit(1)
 
-    stream = tokenize(sys.argv[1])
-    root = AstProg.parse(stream)
+    tokenize(sys.argv[1])
+    root = AstProg.parse()
     
     root.compile()
     finalize("\n".join(output))
